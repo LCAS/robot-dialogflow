@@ -6,6 +6,7 @@ from os import getenv
 from json import loads, dumps
 from pprint import pformat
 from requests import post
+from collections import defaultdict
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -27,6 +28,26 @@ urls = (
 )
 
 
+class SessionManager:
+    '''
+    A management class containing all active sessions
+    '''
+    def __init__(self):
+        self.__active_sessions = defaultdict(dict)
+
+    def get(self, session_id):
+        return self.__active_sessions[session_id]
+
+    def all(self):
+        return dict(self.__active_sessions)
+
+    def set(self, session_id, args={}):
+        self.__active_sessions[session_id] = args
+
+
+session_manager = SessionManager()
+
+
 class EventDispatcher:
     '''
     Class to send dialogflow event out via the standard API
@@ -43,7 +64,17 @@ class EventDispatcher:
         }
         self.url = 'https://api.dialogflow.com/v1/query'
 
-    def send_event(self, event_name, parameters={}, sessionId='1234567890'):
+    def send_event(self, event_name, parameters={}, sessionId=None):
+        if sessionId is not None:
+            return self._send_event(event_name, parameters, sessionId)
+        else:
+            return [
+                self._send_event(event_name, parameters, s)
+                for s in session_manager.all()
+            ]
+
+    def _send_event(self, event_name, parameters, sessionId):
+        logging.info('send event %s to session %s' % (event_name, sessionId))
         data = {
             'event': {
                 'name': event_name,
@@ -153,6 +184,9 @@ class index:
         d = loads(data)
         logging.info(pformat(d))
         try:
+            if 'sessionId' in d:
+                session_manager.set(d['sessionId'], d)
+
             r = self._dispatch(d['result'])
         except Exception as e:
             logging.warn("couldn't dispatch")
