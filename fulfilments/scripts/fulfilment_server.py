@@ -2,8 +2,10 @@
 import web
 
 import logging
+from os import getenv
 from json import loads, dumps
 from pprint import pformat
+from requests import post
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -19,11 +21,40 @@ except:
     logging.info('running without ROS')
 
 
-
-
 urls = (
-    '/webhook', 'index'
+    '/webhook', 'index',
+    '/', 'test'
 )
+
+
+class EventDispatcher:
+    '''
+    Class to send dialogflow event out via the standard API
+    '''
+    def __init__(self, apikey=None):
+        if apikey is not None:
+            self.apikey = apikey
+        else:
+            self.apikey = getenv('DF_APIKEY', 'invalidapikey')
+            logging.info('APIKEY: %s' % self.apikey)
+        self.header = {
+            'Authorization': 'Bearer %s' % self.apikey,
+            'Content-Type': 'application/json; charset=utf-8'
+        }
+        self.url = 'https://api.dialogflow.com/v1/query'
+
+    def send_event(self, event_name, parameters={}, sessionId='1234567890'):
+        data = {
+            'event': {
+                'name': event_name,
+                'data': parameters
+            },
+            'lang': 'en',
+            'sessionId': sessionId
+
+        }
+        r = post(self.url, data=dumps(data), headers=self.header)
+        logging.info(pformat(r.json()))
 
 
 class ROSInterface:
@@ -43,6 +74,13 @@ else:
     ros = None
 
 
+class test:
+
+    def GET(self):
+        event = EventDispatcher()
+        event.send_event('test')
+
+
 class index:
 
     def POST(self):
@@ -56,7 +94,7 @@ class index:
         return "it truly worked"
 
     '''
-    goto action, excepts argument "destination" referring to an
+    goto action, expects argument "destination" referring to an
     existing topological node name in the robot's map
     '''
     def on_goto(self, d):
@@ -73,7 +111,7 @@ class index:
         return "I'm going to %s" % node
 
     '''
-    speak action, excepts argument "utterance" referring to an
+    speak action, expects argument "utterance" referring to an
     text that should be verbalised via Mary
     '''
     def on_speak(self, d):
@@ -130,28 +168,6 @@ class index:
         }
 
         return dumps(response)
-    # action = req.get('result').get('action')
-
-    # # Check if the request is for the translate action
-    # if action == 'translate.text':
-    #     # Get the parameters for the translation
-    #     text = req['result']['parameters'].get('text')
-    #     source_lang = req['result']['parameters'].get('lang-from')
-    #     target_lang = req['result']['parameters'].get('lang-to')
-
-    #     # Fulfill the translation and get a response
-    #     output = translate(text, source_lang, target_lang)
-
-    #     # Compose the response to API.AI
-    #     res = {'speech': output,
-    #            'displayText': output,
-    #            'contextOut': req['result']['contexts']}
-    # else:
-    #     # If the request is not to the translate.text action throw an error
-    #     LOG.error('Unexpected action requested: %s', json.dumps(req))
-    #     res = {'speech': 'error', 'displayText': 'error'}
-
-    # return make_response(jsonify(res))
 
 
 if __name__ == "__main__":
