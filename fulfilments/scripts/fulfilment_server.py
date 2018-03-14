@@ -9,6 +9,7 @@ from requests import post
 from collections import defaultdict
 from os import _exit
 import signal
+from time import time
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -26,7 +27,8 @@ except:
 
 urls = (
     '/webhook/(.+)', 'index',
-    '/(.+)', 'test'
+    '/html/(.+)', 'test',
+    '/(.+)', 'sim_status'
 )
 
 
@@ -105,20 +107,24 @@ class ROSInterface:
 class SimulationInterface:
 
     def __init__(self):
-        self.locations = defaultdict(str)
-        self.utterances = defaultdict(list)
+        self.state = defaultdict(lambda: {
+            'location': '*unknown*',
+            'utterances': [],
+            'eyes_closed': False,
+            'track_people': False
+            })
 
     def get_location(self, robot):
-        return self.locations[robot]
+        return self.state[robot]['location']
 
     def set_location(self, robot, location):
-        self.locations[robot] = location
+        self.state[robot]['location'] = location
 
     def add_utterance(self, robot, utterance):
-        self.utterances[robot].append(utterance)
+        self.state[robot]['utterances'].append(utterance)
 
     def get_utterances(self, robot):
-        return self.utterances[robot]
+        return self.state[robot]['utterances']
 
 
 simulation = SimulationInterface()
@@ -272,6 +278,21 @@ class test:
               )
             )
         return html
+
+
+class sim_status:
+
+    def GET(self, robot):
+        self.robot = robot
+        logging.info('status %s' % robot)
+
+        response = {
+          "state": simulation.state[robot],
+          "robot": robot,
+          "ts": (time())
+        }
+
+        return dumps(response)
 
 
 def signal_handler(signum, frame):
