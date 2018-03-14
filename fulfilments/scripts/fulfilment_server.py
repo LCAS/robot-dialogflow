@@ -7,6 +7,8 @@ from json import loads, dumps
 from pprint import pformat
 from requests import post
 from collections import defaultdict
+from os import _exit
+import signal
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -23,8 +25,8 @@ except:
 
 
 urls = (
-    '/webhook', 'index',
-    '/', 'test'
+    '/simrob/webhook/(.+)', 'index',
+    '/simrob/(.+)', 'test'
 )
 
 
@@ -99,31 +101,88 @@ class ROSInterface:
             '/speak',
             marytts)
 
+
+class SimulationInterface:
+
+    def __init__(self):
+        self.locations = defaultdict(str)
+        self.utterances = defaultdict(list)
+
+    def get_location(self, robot):
+        return self.locations[robot]
+
+    def set_location(self, robot, location):
+        self.locations[robot] = location
+
+    def add_utterance(self, robot, utterance):
+        self.utterances[robot].append(utterance)
+
+    def get_utterances(self, robot):
+        return self.utterances[robot]
+
+
+simulation = SimulationInterface()
+
+
 if ros_available:
-    ros = ROSInterface()
+    try:
+        ros = ROSInterface()
+    except:
+        logging.warn("couldn't initialise ROS, working without")
+        ros = None
 else:
     ros = None
 
 
-class test:
+class FulfilmentDispatcher:
 
-    def GET(self):
-        event = EventDispatcher()
-        event.send_event('test')
+    '''
+    generic dispatch method, calls "on_<ACTIONNAME>" if it is defined
+    in this file, or returns a default error message.
+    '''
+    def _dispatch(self, r):
+        if 'action' in r:
+            method = r['action']
+            try:
+                method_to_call = getattr(self, 'on_%s' % method)
+                logging.info('dispatch to method on_%s' % method)
+            except AttributeError:
+                logging.warn('cannot dispatch method %s' % method)
+                return "Sorry I can't do this yet."
+            return method_to_call(r)
+
+    '''
+    The default process method called on any request. Does make sure
+    we behave like a proper DialogFlow fulfilment.
+    '''
+    def process(self):
+        req = web.input()
+        data = web.data()
+        logging.info(req)
+        try:
+            d = loads(data)
+            logging.info(pformat(d))
+            if 'sessionId' in d:
+                session_manager.set(d['sessionId'], d)
+
+            r = self._dispatch(d['result'])
+        except Exception as e:
+            logging.warn("couldn't dispatch")
+            return web.BadRequest("couldn't dispatch: %s" % e)
+        web.header('Content-Type', 'application/json')
+
+        response = {
+          "speech": r,
+          "displayText": r,
+          "data": {},
+          "contextOut": [],
+          "source": "server"
+        }
+
+        return dumps(response)
 
 
-class index:
-
-    def POST(self):
-        return self.process()
-
-    def GET(self):
-        return self.process()
-
-    def on_add_item(self, d):
-        logging.debug('called add_item')
-        return "it truly worked"
-
+class ROSDispatcher(FulfilmentDispatcher):
     '''
     goto action, expects argument "destination" referring to an
     existing topological node name in the robot's map
@@ -158,54 +217,72 @@ class index:
             )
         return "I just said %s to the users." % utterance
 
+
+class SimulationDispatcher(FulfilmentDispatcher):
     '''
-    generic dispatch method, calls "on_<ACTIONNAME>" if it is defined
-    in this file, or returns a default error message.
+    goto action, expects argument "destination" referring to an
+    existing topological node name in the robot's map
     '''
-    def _dispatch(self, r):
-        if 'action' in r:
-            method = r['action']
-            try:
-                method_to_call = getattr(self, 'on_%s' % method)
-                logging.info('dispatch to method on_%s' % method)
-            except AttributeError:
-                logging.warn('cannot dispatch method %s' % method)
-                return "Sorry I can't do this yet."
-            return method_to_call(r)
+    def on_goto(self, d):
+        node = d['parameters']['destination']
+        logging.debug('called goto %s' % node)
+        simulation.set_location(self.robot, node)
+        return "I'm going to %s" % node
 
     '''
-    The default process method called on any request. Does make sure
-    we behave like a proper DialogFlow fulfilment.
+    speak action, expects argument "utterance" referring to an
+    text that should be verbalised via Mary
     '''
-    def process(self):
-        req = web.input()
-        data = web.data()
-        logging.info(req)
-        d = loads(data)
-        logging.info(pformat(d))
-        try:
-            if 'sessionId' in d:
-                session_manager.set(d['sessionId'], d)
+    def on_speak(self, d):
+        utterance = d['parameters']['utterance']
+        logging.debug('called speak %s' % utterance)
+        simulation.add_utterance(self.robot, utterance)
+        return "I just said %s to the users." % utterance
 
-            r = self._dispatch(d['result'])
-        except Exception as e:
-            logging.warn("couldn't dispatch")
-            return web.BadRequest(e)
-        web.header('Content-Type', 'application/json')
 
-        response = {
-          "speech": r,
-          "displayText": r,
-          "data": {},
-          "contextOut": [],
-          "source": "server"
-        }
+class index(SimulationDispatcher):
+    def POST(self, robot):
+        self.robot = robot
+        return self.process()
 
-        return dumps(response)
+    def GET(self, robot):
+        self.robot = robot
+        return self.process()
+
+
+class test:
+
+    def GET(self, robot):
+        self.robot = robot
+        logging.info('view %s' % robot)
+        html = (
+            '<head> <meta http-equiv="refresh" content="5" /> </head>'
+            '<body>'
+            '<h1>%s</h1>'
+            '<table>'
+            '<tr>'
+            '  <td>Location:</td><td>%s</td>'
+            '</tr>'
+            '<tr>'
+            '  <td>Last Utterance:</td><td>%s</td>'
+            '</tr>' % (
+                robot,
+                simulation.get_location(robot),
+                simulation.get_utterances(robot)[-1:]
+              )
+            )
+        return html
+
+
+def signal_handler(signum, frame):
+    print "stopped."
+    _exit(signal.SIGTERM)
 
 
 if __name__ == "__main__":
-
     app = web.application(urls, globals())
     app.internalerror = web.debugerror
+    signal.signal(signal.SIGINT, signal_handler)
     app.run()
+else:
+    application = app.wsgifunc()
