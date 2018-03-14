@@ -181,7 +181,12 @@ class FulfilmentDispatcher:
           "speech": r,
           "displayText": r,
           "data": {},
-          "contextOut": [],
+          "contextOut": [
+              {
+                  "name": "robot_state",
+                  "parameters": simulation.state[self.robot],
+                  "lifespan": 5
+              }],
           "source": "server"
         }
 
