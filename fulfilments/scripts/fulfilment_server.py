@@ -5,7 +5,7 @@ import logging
 from os import getenv
 from json import loads, dumps
 from pprint import pformat
-from requests import post
+from requests import post, get
 from collections import defaultdict
 from os import _exit
 import signal
@@ -102,6 +102,25 @@ class ROSInterface:
         self.speak_action_server = SimpleActionClient(
             '/speak',
             marytts)
+
+
+class Wikipedia:
+    URL_PATTERN='https://simple.wikipedia.org/w/api.php?action=query&format=json&titles=%s&prop=extracts&exintro&explaintext'
+
+    def query(self, q):
+        r = get(Wikipedia.URL_PATTERN % q)
+        data = r.json()
+        print data
+        try:
+            pages = data['query']['pages']
+            for k in pages:
+                try:
+                    return pages[k]['extract']
+                except:
+                    pass
+            return "I don't know anything about %s." % q
+        except:
+            return "I don't know anything about %s." % q
 
 
 class SimulationInterface:
@@ -250,6 +269,15 @@ class SimulationDispatcher(FulfilmentDispatcher):
         simulation.add_utterance(self.robot, utterance)
         return "I just said %s to the users." % utterance
 
+    '''
+    speak action, expects argument "utterance" referring to an
+    text that should be verbalised via Mary
+    '''
+    def on_wikipedia(self, d):
+        query = d['parameters']['query']
+        logging.debug('called wikipedia %s' % query)
+        return Wikipedia().query(query)
+
 
 class index(SimulationDispatcher):
     def POST(self, robot):
@@ -294,7 +322,8 @@ class sim_status:
         response = {
           "state": simulation.state[robot],
           "robot": robot,
-          "ts": (time())
+          "ts": (time()),
+          "wiki": Wikipedia().query('bielefeld')
         }
         web.header('Content-Type', 'application/json')
         return dumps(response)
