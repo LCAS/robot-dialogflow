@@ -278,9 +278,9 @@ def signal_handler(signum, frame):
     print "stopped."
     _exit(signal.SIGTERM)
 
+app = web.application(urls, globals())
 
 if __name__ == "__main__":
-    app = web.application(urls, globals())
     app.internalerror = web.debugerror
     signal.signal(signal.SIGINT, signal_handler)
     app.run()
