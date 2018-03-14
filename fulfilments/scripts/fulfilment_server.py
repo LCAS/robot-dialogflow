@@ -291,7 +291,7 @@ class sim_status:
           "robot": robot,
           "ts": (time())
         }
-
+        web.header('Content-Type', 'application/json')
         return dumps(response)
 
 
