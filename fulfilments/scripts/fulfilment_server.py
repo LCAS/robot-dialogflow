@@ -25,8 +25,8 @@ except:
 
 
 urls = (
-    '/simrob/webhook/(.+)', 'index',
-    '/simrob/(.+)', 'test'
+    '/webhook/(.+)', 'index',
+    '/(.+)', 'test'
 )
 
 
