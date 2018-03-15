@@ -10,6 +10,7 @@ from collections import defaultdict
 from os import _exit
 import signal
 from time import time
+from urllib import quote
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -105,22 +106,34 @@ class ROSInterface:
 
 
 class Wikipedia:
-    URL_PATTERN='https://simple.wikipedia.org/w/api.php?action=query&format=json&titles=%s&prop=extracts&exintro&explaintext'
+    # URL_PATTERN='https://simple.wikipedia.org/w/api.php?action=query&format=json&titles=%s&prop=extracts&exintro&explaintext'
+    URL_PATTERN = (
+        'https://simple.wikipedia.org/w/api.php'
+        '?action=opensearch&format=json&search=%s&limit=5&redirects=resolve'
+        )
 
     def query(self, q):
-        r = get(Wikipedia.URL_PATTERN % q)
+        url = Wikipedia.URL_PATTERN % quote(q)
+        r = get(url)
         data = r.json()
-        print data
         try:
-            pages = data['query']['pages']
-            for k in pages:
-                try:
-                    return pages[k]['extract']
-                except:
-                    pass
-            return "I don't know anything about %s." % q
+            result = ' '.join(data[2])
+            if len(result) > 3:
+                return result
+            else:
+                return "Sorry, I don't know anything about %s." % q
         except:
-            return "I don't know anything about %s." % q
+            return "Sorry, I don't know anything about %s." % q
+        # try:
+        #     pages = data['query']['pages']
+        #     for k in pages:
+        #         try:
+        #             return pages[k]['extract']
+        #         except:
+        #             pass
+        #     return "I don't know anything about %s." % q
+        # except:
+        #     return "I don't know anything about %s." % q
 
 
 class SimulationInterface:
@@ -323,7 +336,7 @@ class sim_status:
           "state": simulation.state[robot],
           "robot": robot,
           "ts": (time()),
-          "wiki": Wikipedia().query('bielefeld')
+          # "wiki": Wikipedia().query('lincolnsdfdsf')
         }
         web.header('Content-Type', 'application/json')
         return dumps(response)
