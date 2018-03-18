@@ -44,6 +44,8 @@ class Agent:
     Class to send dialogflow event out via the standard API
     '''
     def __init__(self, apikey=None):
+
+        self.contexts = []
         if apikey is not None:
             self.apikey = apikey
         else:
@@ -55,17 +57,26 @@ class Agent:
         }
         self.url = 'https://api.dialogflow.com/v1/query'
 
-    def query(self, q):
+    def query(self, q, robot=str(uuid4())):
         data = {
-            'contexts': [],
+            'contexts': self.contexts,
             'query': q,
             'lang': 'en',
             'sessionId': str(uuid4())
         }
+        logging.info(pformat(data))
         r = post(self.url, data=dumps(data), headers=self.header)
         fparams = r.json()
         logging.info(pformat(fparams))
-        logging.info(pformat(SimulationDispatcher().dispatch(fparams)))
+        # fulfilment = SimulationDispatcher()
+        # fulfilment.robot = robot
+        # ff_response = fulfilment.dispatch(fparams)
+        self.contexts = fparams['result']['metadata']['contexts']
+        # if ff_response['speech'] is not "":
+        #     self.contexts = ff_response['contextOut']
+        #     fparams['result'] = ff_response
+        # print "***" + pformat(fparams)
+        return fparams
         #logging.info(pformat(r.json()))
 
     def send_event(self, event_name, parameters={}, sessionId=None):

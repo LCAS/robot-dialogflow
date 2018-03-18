@@ -19,7 +19,7 @@ class FulfilmentDispatcher:
                 logging.info('dispatch to method on_%s' % method)
             except AttributeError:
                 logging.warn('cannot dispatch method %s' % method)
-                return "Sorry I can't do this yet."
+                return ""
             return method_to_call(r)
 
     '''
