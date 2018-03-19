@@ -113,6 +113,17 @@ $$(document).ready(function () {
 					});">
 					Code card seen
 				</button>
+				<button type="button" class="btn btn-default"
+					onclick="send_event('screen_touched', {
+						context: 'unknown'
+					});">
+					User touched screen
+				</button>
+				<button type="button" class="btn btn-default"
+					onclick="send_event('robot_pushed', {
+					});">
+					User pushed robot
+				</button>
 			</div>
 		</div>
 		<div class="col-md-4">
