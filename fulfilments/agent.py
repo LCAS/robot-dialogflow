@@ -51,10 +51,6 @@ class Agent:
         else:
             self.apikey = getenv('DF_APIKEY', 'invalidapikey')
             logging.info('APIKEY: %s' % self.apikey)
-        self.header = {
-            'Authorization': 'Bearer %s' % self.apikey,
-            'Content-Type': 'application/json; charset=utf-8'
-        }
         self.url = 'https://api.dialogflow.com/v1/query?v=20170712'
 
         if robot:
@@ -67,11 +63,18 @@ class Agent:
             self.session = str(uuid4())
         self.self_fulfilment = False
 
-    def query(self, q, session=None, robot=None):
+    def query(self, q, session=None, robot=None, apikey=None):
         if session is None:
             session = self.session
         if robot is None:
             robot = self.robot
+        if apikey is None:
+            apikey = self.apikey
+        headers = {
+            'Authorization': 'Bearer %s' % apikey,
+            'Content-Type': 'application/json; charset=utf-8'
+        }
+
         data = {
             'contexts': self.contexts,
             'query': q,
@@ -79,7 +82,7 @@ class Agent:
             'sessionId': session
         }
         logging.info('request data: %s' % pformat(data))
-        r = post(self.url, data=dumps(data), headers=self.header)
+        r = post(self.url, data=dumps(data), headers=headers)
         response = r.json()
         logging.info(pformat(response))
 

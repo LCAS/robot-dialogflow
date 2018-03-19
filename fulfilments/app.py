@@ -100,9 +100,8 @@ class index:
         wi = web.input(query="who are you?")
         agent = index.agents[robot]
         # use robot identifier also as API key
-        agent.apikey = robot
         response = index.agents[robot].query(
-            wi.query, robot
+            wi.query, robot=robot, apikey=robot
             )
         web.header('Content-Type', 'application/json')
         return dumps(response)
