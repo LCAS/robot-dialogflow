@@ -2,7 +2,7 @@
 import web
 import sys
 import logging
-from json import dumps
+from json import dumps, loads
 from os import _exit, chdir, path
 import signal
 from time import time
@@ -108,12 +108,25 @@ class index:
     def POST(self, robot):
         session = web.cookies(df_session=uuid4()).df_session
         web.setcookie('df_session', session, 3600)
-        wi = web.input(query="who are you?")
+        wi = web.input(
+            query="who are you?",
+            input="text",
+            event="",
+            parameters="{}")
         agent = index.agents[robot]
         # use robot identifier also as API key
-        response = agent.query(
-            wi.query, session=session, robot=robot, apikey=robot
-            )
+        if wi.input == 'text':
+            response = agent.query(
+                wi.query, session=session, robot=robot, apikey=robot
+                )
+        elif wi.input == 'event':
+            logging.info(wi.parameters)
+            response = agent.send_event(
+                wi.event, loads(wi.parameters),
+                session=session, robot=robot, apikey=robot
+                )
+        else:
+            return web.nomethod()
         web.header('Content-Type', 'application/json')
         return dumps(response)
 

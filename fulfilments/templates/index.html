@@ -21,13 +21,28 @@ $var title: DFAgent
 	}
 
 	function submit_to_df() {
+		$$('#df_response').val('...processing...')
 		$$.post("#" , {
+			input: 'text',
 			query: $$('#df_input').val()
 		},
 		function(data) {
 			$$('#df_response').val(data['fulfillment']['speech']);
 			console.log("submit returned with data " + JSON.stringify(data));
 			$$('#df_input').val('')
+		});
+
+	}
+
+	function send_event(ev, params) {
+		$$.post("#" , {
+			input: 'event',
+			parameters: JSON.stringify(params),
+			event: ev
+		},
+		function(data) {
+			$$('#df_response').val(data['fulfillment']['speech']);
+			console.log("submit returned with data " + JSON.stringify(data));
 		});
 
 	}
@@ -67,11 +82,38 @@ $$(document).ready(function () {
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-8">
+		<div class="col-md-4">
 			<h3>
 				Simulation State
 			</h3>
 			<textarea name="sim_state" class="form-control" rows="10" disabled id="sim_state"></textarea>
+		</div>
+		<div class="col-md-4">
+			<h3>
+				Events
+			</h3>
+			<div class="btn-group-vertical" role="group">
+				<button type="button" class="btn btn-default"
+					onclick="send_event('person_detected', {age: 20});">
+					Person detected
+				</button>
+				<button type="button" class="btn btn-default"
+					onclick="send_event('place_reached', {place: 'plesiosaurus'});">
+					Place "Plesiosaurus" reached
+				</button>
+				<button type="button" class="btn btn-default"
+					onclick="send_event('request_help', {
+						instructions: 'Can you please help me by pushing me away from here a bit?'
+					});">
+					Navigation failure
+				</button>
+				<button type="button" class="btn btn-default"
+					onclick="send_event('code_card_seen', {
+						command: 'tweet'
+					});">
+					Code card seen
+				</button>
+			</div>
 		</div>
 		<div class="col-md-4">
 			<h3>

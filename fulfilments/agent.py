@@ -43,7 +43,7 @@ class Agent:
     '''
     Class to send dialogflow event out via the standard API
     '''
-    def __init__(self, apikey=None,robot=None,session=None):
+    def __init__(self, apikey=None, robot=None, session=None):
 
         self.contexts = []
         if apikey is not None:
@@ -61,7 +61,7 @@ class Agent:
             self.session = session
         else:
             self.session = str(uuid4())
-        self.self_fulfilment = False
+        # self.self_fulfilment = False
 
     def query(self, q, session=None, robot=None, apikey=None):
         if session is None:
@@ -89,47 +89,71 @@ class Agent:
         result = response['result']
         if response['status']['code'] is not 200:
             logging.warning('FAILED: %s' % pformat(response['status']))
-        if self.self_fulfilment:
-            action = result.get('action')
-            actionIncomplete = result.get('actionIncomplete', False)
-            #self.contexts = result['metadata']['contexts']
+        # if self.self_fulfilment:
+        #     action = result.get('action')
+        #     actionIncomplete = result.get('actionIncomplete', False)
+        #     #self.contexts = result['metadata']['contexts']
 
-            if action is not None and len(action) > 0:
-                logging.info('found action: "%s"' % action)
-                fulfilment = SimulationDispatcher()
-                fulfilment.robot = robot
-                if not actionIncomplete and fulfilment.can_dispatch(action):
-                    result = fulfilment.dispatch(response)
-                    logging.info('action %s completed' % action)
+        #     if action is not None and len(action) > 0:
+        #         logging.info('found action: "%s"' % action)
+        #         fulfilment = SimulationDispatcher()
+        #         fulfilment.robot = robot
+        #         if not actionIncomplete and fulfilment.can_dispatch(action):
+        #             result = fulfilment.dispatch(response)
+        #             logging.info('action %s completed' % action)
 
-            contextsOut = result.get('contextOut', None)
-            if contextsOut:
-                self.contexts = result['contextOut']
-            logging.info('final result: %s' % pformat(result))
+        #     contextsOut = result.get('contextOut', None)
+        #     if contextsOut:
+        #         self.contexts = result['contextOut']
+        #     logging.info('final result: %s' % pformat(result))
         return result
 
-    def send_event(self, event_name, parameters={}, sessionId=None):
-        if sessionId is not None:
-            return self._send_event(event_name, parameters, sessionId)
-        else:
-            return [
-                self._send_event(event_name, parameters, s)
-                for s in session_manager.all()
-            ]
+    def send_event(
+        self, event_name,
+        parameters={}, session=None, robot=None, apikey=None
+    ):
+        if session is None:
+            session = self.session
+        if robot is None:
+            robot = self.robot
+        if apikey is None:
+            apikey = self.apikey
+        headers = {
+            'Authorization': 'Bearer %s' % apikey,
+            'Content-Type': 'application/json; charset=utf-8'
+        }
 
-    def _send_event(self, event_name, parameters, sessionId):
-        logging.info('send event %s to session %s' % (event_name, sessionId))
         data = {
             'event': {
                 'name': event_name,
                 'data': parameters
             },
             'lang': 'en',
-            'sessionId': sessionId
-
+            'sessionId': session
         }
-        r = post(self.url, data=dumps(data), headers=self.header)
-        logging.info(pformat(r.json()))
+        logging.info('event data: %s' % pformat(data))
+        r = post(self.url, data=dumps(data), headers=headers)
+        response = r.json()
+        logging.info(pformat(response))
+        result = response['result']
+        if response['status']['code'] is not 200:
+            logging.warning('FAILED: %s' % pformat(response['status']))
+        return result
+
+
+    # def _send_event(self, event_name, parameters, sessionId):
+    #     logging.info('send event %s to session %s' % (event_name, sessionId))
+    #     data = {
+    #         'event': {
+    #             'name': event_name,
+    #             'data': parameters
+    #         },
+    #         'lang': 'en',
+    #         'sessionId': sessionId
+
+    #     }
+    #     r = post(self.url, data=dumps(data), headers=self.header)
+    #     logging.info(pformat(r.json()))
 
 
 if __name__ == "__main__":
