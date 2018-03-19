@@ -103,7 +103,10 @@ class index:
     def GET(self, robot):
         session = web.cookies(df_session=uuid4()).df_session
         web.setcookie('df_session', session, 3600)
-        return index.render.index(robot)
+
+        methods = sorted(SimulationDispatcher.available_methods())
+
+        return index.render.index(robot, methods)
 
     def POST(self, robot):
         session = web.cookies(df_session=uuid4()).df_session

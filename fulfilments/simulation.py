@@ -54,6 +54,11 @@ class SimulationSingleton:
 
 class SimulationDispatcher(FulfilmentDispatcher):
 
+    @staticmethod
+    def available_methods():
+        return [a[3:] for a in dir(SimulationDispatcher)
+                if a.startswith('on_')]
+
     def __init__(self):
         self.simulation = SimulationSingleton.getInstance()
         self.context = {}

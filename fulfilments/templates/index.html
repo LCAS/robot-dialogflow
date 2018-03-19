@@ -1,4 +1,4 @@
-$def with (robot)
+$def with (robot, available_methods)
 $var title: DFAgent
 
 
@@ -87,6 +87,14 @@ $$(document).ready(function () {
 				Simulation State
 			</h3>
 			<textarea name="sim_state" class="form-control" rows="10" disabled id="sim_state"></textarea>
+			<h4>Available methods on fulfilment server:</h4>
+			<p>
+				<ul class="list-group">
+				$for m in available_methods:
+						<li class="list-group-item">$m</li>
+				</ul>
+		  </p>
+
 		</div>
 		<div class="col-md-4">
 			<h3>
