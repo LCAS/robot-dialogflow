@@ -17,6 +17,10 @@ $var title: DFAgent
 
 
 $$(document).ready(function () {
+			$$('#webhook').html(
+				'<a href="'+window.location.href+'/webhook">'
+				+ window.location.href+'/webhook</a>');
+
 			var source = new EventSource("api/$robot");
 			source.onmessage = function(event) {
 			    console.log(event.data);
@@ -34,10 +38,10 @@ $$(document).ready(function () {
 		<div class="col-md-12">
 			<div class="jumbotron">
 				<h2>
-					DF Agent: $robot
+					DialogFlow Robot: $robot
 				</h2>
 				<p>
-					To be described in detail here
+					Configure DialogFlow to use the following fulfillment webhook: <span id="webhook"></span>. Read more about this in our <a target="_blank" href="https://github.com/LCAS/robot-dialogflow/wiki/">documentation</a>.
 				</p>
 <!-- 				<p>
 					<a class="btn btn-primary btn-large" href="#">Learn more</a>

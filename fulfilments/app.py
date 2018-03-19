@@ -16,7 +16,6 @@ if len(abspath) > 0:
     sys.path.append(abspath)
     chdir(abspath)
 
-
 from simulation import SimulationDispatcher, SimulationSingleton
 
 from agent import Agent
@@ -25,10 +24,17 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 urls = (
-    '/webhook/(.+)', 'webhook',
+    '/(.+)/webhook', 'webhook',
     '/api/(.+)', 'api',
-    '/(.+)', 'index'
+    '/(.+)', 'index',
+    '/', 'redirect'
 )
+
+
+class redirect:
+
+    def GET(self):
+        web.seeother('https://github.com/LCAS/robot-dialogflow/wiki')
 
 
 class webhook(SimulationDispatcher):
