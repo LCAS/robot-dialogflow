@@ -34,19 +34,49 @@ class webhook(SimulationDispatcher):
 
 class api:
 
+    def response(self, data):
+        response = "data: " + data + "\n\n"
+        return response
+
     def GET(self, robot):
         self.robot = robot
         logging.info('status %s' % robot)
 
-        response = {
-          "state": SimulationSingleton.getInstance().state[robot],
-          "robot": robot,
-          "ts": (time()),
-          # "wiki": Wikipedia().query('lincolnsdfdsf')
-        }
-        #Agent().query('tell me about lincoln')
-        web.header('Content-Type', 'application/json')
-        return dumps(response)
+        block = False
+        web.header("Content-Type", "text/event-stream")
+        web.header('Cache-Control', 'no-cache')
+
+        while True:
+            SimulationSingleton.getInstance().update_cond.acquire()
+            try:
+                if block:
+                    SimulationSingleton.getInstance().update_cond.wait(
+                        timeout=60
+                        )
+                    #logging.info('wait returned, yielding new result')
+            finally:
+                SimulationSingleton.getInstance().update_cond.release()
+            block = True
+
+            data = {
+              "state": SimulationSingleton.getInstance().state[robot],
+              "robot": robot,
+              "ts": (time()),
+              "dummy": range(1000)
+              # "wiki": Wikipedia().query('lincolnsdfdsf')
+            }
+            r = self.response(dumps(data))
+            yield r
+
+        # response = {
+        #   "state": SimulationSingleton.getInstance().state[robot],
+        #   "robot": robot,
+        #   "ts": (time()),
+        #   # "wiki": Wikipedia().query('lincolnsdfdsf')
+        # }
+        # #Agent().query('tell me about lincoln')
+        # web.header('Content-Type', 'application/json')
+        # return dumps(response)
 
 
 class index:

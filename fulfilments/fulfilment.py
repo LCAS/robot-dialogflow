@@ -18,7 +18,7 @@ class FulfilmentDispatcher:
     in this file, or returns a default error message.
     '''
     def _dispatch(self, r):
-        logging.info("called dispatch: %s" % r)
+        logging.info("called dispatch: %s" % pformat(r))
         if 'action' in r:
             method = r['action']
             try:

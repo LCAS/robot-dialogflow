@@ -16,7 +16,7 @@ from urllib import quote
 
 from simulation import SimulationDispatcher
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 class SessionManager:
@@ -43,7 +43,7 @@ class Agent:
     '''
     Class to send dialogflow event out via the standard API
     '''
-    def __init__(self, apikey=None):
+    def __init__(self, apikey=None,robot=None,session=None):
 
         self.contexts = []
         if apikey is not None:
@@ -55,38 +55,54 @@ class Agent:
             'Authorization': 'Bearer %s' % self.apikey,
             'Content-Type': 'application/json; charset=utf-8'
         }
-        self.url = 'https://api.dialogflow.com/v1/query'
+        self.url = 'https://api.dialogflow.com/v1/query?v=20170712'
 
-    def query(self, q, robot=str(uuid4())):
+        if robot:
+            self.robot = robot
+        else:
+            self.robot = str(uuid4())
+        if session:
+            self.session = session
+        else:
+            self.session = str(uuid4())
+        self.self_fulfilment = False
+
+    def query(self, q, session=None, robot=None):
+        if session is None:
+            session = self.session
+        if robot is None:
+            robot = self.robot
         data = {
             'contexts': self.contexts,
             'query': q,
             'lang': 'en',
-            'sessionId': str(uuid4())
+            'sessionId': session
         }
-        logging.info(pformat(data))
+        logging.info('request data: %s' % pformat(data))
         r = post(self.url, data=dumps(data), headers=self.header)
         response = r.json()
         logging.info(pformat(response))
 
         result = response['result']
-        action = result.get('action')
-        actionIncomplete = result.get('actionIncomplete', False)
-        self.contexts = result['metadata']['contexts']
+        if response['status']['code'] is not 200:
+            logging.warning('FAILED: %s' % pformat(response['status']))
+        if self.self_fulfilment:
+            action = result.get('action')
+            actionIncomplete = result.get('actionIncomplete', False)
+            #self.contexts = result['metadata']['contexts']
 
-        if action is not None and action is not '':
-            logging.info('found action: %s' % action)
-            fulfilment = SimulationDispatcher()
-            fulfilment.robot = robot
-            if fulfilment.can_dispatch(action):
-                result = fulfilment.dispatch(response)
-            if not actionIncomplete:
-                logging.info('action %s completed' % action)
+            if action is not None and len(action) > 0:
+                logging.info('found action: "%s"' % action)
+                fulfilment = SimulationDispatcher()
+                fulfilment.robot = robot
+                if not actionIncomplete and fulfilment.can_dispatch(action):
+                    result = fulfilment.dispatch(response)
+                    logging.info('action %s completed' % action)
 
-        contextsOut = result.get('contextOut', None)
-        if contextsOut:
-            self.contexts = result['contextOut']
-        logging.info('final result: %s' % pformat(result))
+            contextsOut = result.get('contextOut', None)
+            if contextsOut:
+                self.contexts = result['contextOut']
+            logging.info('final result: %s' % pformat(result))
         return result
 
     def send_event(self, event_name, parameters={}, sessionId=None):
@@ -114,7 +130,9 @@ class Agent:
 
 
 if __name__ == "__main__":
-    agent = Agent()
-    agent.query("what is bielefeld?")
-    agent.query("go to the kitchen")
-    agent.query("where are you?")
+    agent = Agent(robot="hurga")
+    #agent.query("what is bielefeld?")
+    #agent.query("go to the kitchen")
+    agent.query("go away")
+    agent.query("kitchen")
+    #agent.query("where are you?")

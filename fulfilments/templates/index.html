@@ -1,4 +1,4 @@
-$def with (data)
+$def with (robot)
 $var title: DFAgent
 
 
@@ -9,11 +9,22 @@ $var title: DFAgent
 			query: $$('#df_input').val()
 		},
 		function(data) {
-			$$('#df_response').val(data['result']['speech']);
+			$$('#df_response').val(data['fulfillment']['speech']);
 			console.log("submit returned with data " + JSON.stringify(data));
 		});
 
 	}
+
+
+$$(document).ready(function () {
+			var source = new EventSource("api/$robot");
+			source.onmessage = function(event) {
+			    console.log(event.data);
+			    var state = JSON.parse(event.data)['state'];
+			    $$('#sim_state').val(JSON.stringify(state, null, 2));
+					JSON.parse(event.data);
+			};
+});
 
 </script>
 
@@ -23,7 +34,7 @@ $var title: DFAgent
 		<div class="col-md-12">
 			<div class="jumbotron">
 				<h2>
-					DF Agent
+					DF Agent: $robot
 				</h2>
 				<p>
 					To be described in detail here
@@ -37,8 +48,9 @@ $var title: DFAgent
 	<div class="row">
 		<div class="col-md-8">
 			<h3>
-				Simulation
-			</h3><img alt="Bootstrap Image Preview" src="http://www.layoutit.com/img/sports-q-c-140-140-3.jpg" />
+				Simulation State
+			</h3>
+			<textarea name="sim_state" class="form-control" rows="10" disabled id="sim_state"></textarea>
 		</div>
 		<div class="col-md-4">
 			<h3>
@@ -50,19 +62,22 @@ $var title: DFAgent
 					<label for="df_input">
 						Speak to the robot
 					</label>
-					<input type="text" class="form-control" id="df_input" />
-				</div>
-				<div class="form-group">
-					 
-					<label for="df_response">
-						Robot's Response
-					</label>
-					<input type="textarea" class="form-control" id="df_response" disabled />
+					<input type="text" class="form-control" id="df_input" 
+						onkeydown="if (event.keyCode == 13) { submit_to_df(); return false; }"
+					/>
 				</div>
 				<button type="button" class="btn btn-primary"
 					onclick="submit_to_df();">
 					Submit
 				</button>
+				<div class="form-group">
+					 
+					<label for="df_response">
+						Robot's Response
+					</label>
+					<textarea class="form-control" rows=5 id="df_response" disabled>
+					</textarea>
+				</div>
 			</form>
 		</div>
 	</div>

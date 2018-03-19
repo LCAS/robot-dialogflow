@@ -2,6 +2,7 @@ from collections import defaultdict
 import logging
 from fulfilment import FulfilmentDispatcher
 from utils import Wikipedia
+from threading import Condition
 
 
 class SimulationSingleton:
@@ -22,6 +23,8 @@ class SimulationSingleton:
         else:
             SimulationSingleton.__instance = self
 
+        self.update_cond = Condition()
+
         self.state = defaultdict(lambda: {
             'location': '*unknown*',
             'utterances': [],
@@ -33,10 +36,20 @@ class SimulationSingleton:
         return self.state[robot][attribute]
 
     def set(self, robot, attribute='location', value=None):
+        self.update_cond.acquire()
         self.state[robot][attribute] = value
+        try:
+            self.update_cond.notifyAll()
+        finally:
+            self.update_cond.release()
 
     def append(self, robot, attribute='location', value=None):
+        self.update_cond.acquire()
         self.state[robot][attribute].append(value)
+        try:
+            self.update_cond.notifyAll()
+        finally:
+            self.update_cond.release()
 
 
 class SimulationDispatcher(FulfilmentDispatcher):
@@ -68,10 +81,28 @@ class SimulationDispatcher(FulfilmentDispatcher):
         return "I just said %s to the users." % utterance
 
     '''
-    speak action, expects argument "utterance" referring to an
-    text that should be verbalised via Mary
+    wikipedia action
     '''
     def on_wikipedia(self, d):
         query = d['parameters']['query']
         logging.debug('called wikipedia %s' % query)
         return Wikipedia().query(query)
+
+    '''
+    eye's action
+    '''
+    def on_close_eyes(self, d):
+        logging.debug('called close_eyes')
+        self.simulation.set(self.robot, 'eyes_closed', True)
+        self.context = self.simulation.state[self.robot]
+        return "I closed my eyes"
+
+    '''
+    eye's action
+    '''
+    def on_open_eyes(self, d):
+        logging.debug('called open_eyes')
+        self.simulation.set(self.robot, 'eyes_closed', False)
+        self.context = self.simulation.state[self.robot]
+        return "I opened my eyes"
+
