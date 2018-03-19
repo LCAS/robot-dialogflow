@@ -1,0 +1,104 @@
+$def with (robot)
+$var title: DFAgent
+
+
+<script type="text/javascript">
+
+	function getCookie(cname) {
+	    var name = cname + "=";
+	    var decodedCookie = decodeURIComponent(document.cookie);
+	    var ca = decodedCookie.split(';');
+	    for(var i = 0; i <ca.length; i++) {
+	        var c = ca[i];
+	        while (c.charAt(0) == ' ') {
+	            c = c.substring(1);
+	        }
+	        if (c.indexOf(name) == 0) {
+	            return c.substring(name.length, c.length);
+	        }
+	    }
+	    return "";
+	}
+
+	function submit_to_df() {
+		$$.post("#" , {
+			query: $$('#df_input').val()
+		},
+		function(data) {
+			$$('#df_response').val(data['fulfillment']['speech']);
+			console.log("submit returned with data " + JSON.stringify(data));
+		});
+
+	}
+
+
+$$(document).ready(function () {
+			$$('#webhook').html(
+				'<a href="'+window.location.href+'/webhook">'
+				+ window.location.href+'/webhook</a>');
+
+			var source = new EventSource("api/$robot");
+			source.onmessage = function(event) {
+			    console.log(event.data);
+			    var state = JSON.parse(event.data)['state'];
+			    $$('#sim_state').val(JSON.stringify(state, null, 2));
+					JSON.parse(event.data);
+			};
+});
+
+</script>
+
+
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="jumbotron">
+				<h2>
+					DialogFlow Robot: $robot
+				</h2>
+				<p>
+					Configure DialogFlow to use the following fulfillment webhook: <span id="webhook"></span>. Read more about this in our <a target="_blank" href="https://github.com/LCAS/robot-dialogflow/wiki/">documentation</a>.
+				</p>
+<!-- 				<p>
+					<a class="btn btn-primary btn-large" href="#">Learn more</a>
+				</p> -->
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-8">
+			<h3>
+				Simulation State
+			</h3>
+			<textarea name="sim_state" class="form-control" rows="10" disabled id="sim_state"></textarea>
+		</div>
+		<div class="col-md-4">
+			<h3>
+				Dialogue
+			</h3>
+			<form role="form">
+				<div class="form-group">
+
+					<label for="df_input">
+						Speak to the robot
+					</label>
+					<input type="text" class="form-control" id="df_input" 
+						onkeydown="if (event.keyCode == 13) { submit_to_df(); return false; }"
+					/>
+				</div>
+				<button type="button" class="btn btn-primary"
+					onclick="submit_to_df();">
+					Submit
+				</button>
+				<div class="form-group">
+					 
+					<label for="df_response">
+						Robot's Response
+					</label>
+					<textarea class="form-control" rows=5 id="df_response" disabled>
+					</textarea>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
