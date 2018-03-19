@@ -1,12 +1,21 @@
 #!/usr/bin/env python
 import web
-
+import sys
 import logging
 from json import dumps
-from os import _exit
+from os import _exit, chdir, path
 import signal
 from time import time
 from collections import defaultdict
+
+
+abspath = path.dirname(__file__)
+print abspath
+
+if len(abspath) > 0:
+    sys.path.append(abspath)
+    chdir(abspath)
+
 
 from simulation import SimulationDispatcher, SimulationSingleton
 
