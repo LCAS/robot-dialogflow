@@ -66,18 +66,28 @@ class Agent:
         }
         logging.info(pformat(data))
         r = post(self.url, data=dumps(data), headers=self.header)
-        fparams = r.json()
-        logging.info(pformat(fparams))
-        # fulfilment = SimulationDispatcher()
-        # fulfilment.robot = robot
-        # ff_response = fulfilment.dispatch(fparams)
-        self.contexts = fparams['result']['metadata']['contexts']
-        # if ff_response['speech'] is not "":
-        #     self.contexts = ff_response['contextOut']
-        #     fparams['result'] = ff_response
-        # print "***" + pformat(fparams)
-        return fparams
-        #logging.info(pformat(r.json()))
+        response = r.json()
+        logging.info(pformat(response))
+
+        result = response['result']
+        action = result.get('action')
+        actionIncomplete = result.get('actionIncomplete', False)
+        self.contexts = result['metadata']['contexts']
+
+        if action is not None and action is not '':
+            logging.info('found action: %s' % action)
+            fulfilment = SimulationDispatcher()
+            fulfilment.robot = robot
+            if fulfilment.can_dispatch(action):
+                result = fulfilment.dispatch(response)
+            if not actionIncomplete:
+                logging.info('action %s completed' % action)
+
+        contextsOut = result.get('contextOut', None)
+        if contextsOut:
+            self.contexts = result['contextOut']
+        logging.info('final result: %s' % pformat(result))
+        return result
 
     def send_event(self, event_name, parameters={}, sessionId=None):
         if sessionId is not None:
@@ -106,3 +116,5 @@ class Agent:
 if __name__ == "__main__":
     agent = Agent()
     agent.query("what is bielefeld?")
+    agent.query("go to the kitchen")
+    agent.query("where are you?")

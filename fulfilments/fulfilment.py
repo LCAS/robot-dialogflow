@@ -6,6 +6,13 @@ from pprint import pformat
 
 class FulfilmentDispatcher:
 
+    def can_dispatch(self, method):
+        try:
+            getattr(self, 'on_%s' % method)
+            return True
+        except AttributeError:
+            return False
+
     '''
     generic dispatch method, calls "on_<ACTIONNAME>" if it is defined
     in this file, or returns a default error message.
