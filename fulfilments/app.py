@@ -7,6 +7,7 @@ from os import _exit, chdir, path
 import signal
 from time import time
 from collections import defaultdict
+from uuid import uuid4
 
 
 abspath = path.dirname(__file__)
@@ -100,14 +101,18 @@ class index:
     agents = defaultdict(Agent)
 
     def GET(self, robot):
+        session = web.cookies(df_session=uuid4()).df_session
+        web.setcookie('df_session', session, 3600)
         return index.render.index(robot)
 
     def POST(self, robot):
+        session = web.cookies(df_session=uuid4()).df_session
+        web.setcookie('df_session', session, 3600)
         wi = web.input(query="who are you?")
         agent = index.agents[robot]
         # use robot identifier also as API key
-        response = index.agents[robot].query(
-            wi.query, robot=robot, apikey=robot
+        response = agent.query(
+            wi.query, session=session, robot=robot, apikey=robot
             )
         web.header('Content-Type', 'application/json')
         return dumps(response)
