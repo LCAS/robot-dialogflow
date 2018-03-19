@@ -136,6 +136,9 @@ class Agent:
         response = r.json()
         logging.info(pformat(response))
         result = response['result']
+        if result['action'] == 'input.unknown':
+            logging.info('ignore default intent for events.')
+            return {}
         if response['status']['code'] is not 200:
             logging.warning('FAILED: %s' % pformat(response['status']))
         return result
