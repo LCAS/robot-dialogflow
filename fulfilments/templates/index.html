@@ -27,6 +27,7 @@ $var title: DFAgent
 		function(data) {
 			$$('#df_response').val(data['fulfillment']['speech']);
 			console.log("submit returned with data " + JSON.stringify(data));
+			$$('#df_input').val('')
 		});
 
 	}
