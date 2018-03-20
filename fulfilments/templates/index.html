@@ -33,14 +33,28 @@ $var title: DFAgent
 
 	}
 
-	function show_marker(node_name) {
+	function show_marker(node_name, eyes_closed) {
     	var nodes=$:nodes;
   		$$(".marker").remove();
   		try {
+  			var eyes_state = "open";
+  			if (eyes_closed)
+  				eyes_state="closed";
 	  		var px = nodes[node_name]['x'] * 100 / nodes['_max']['x'];
 	  		var py = nodes[node_name]['y'] * 100 / nodes['_max']['y'];
 	      $$("#map_parent").append(            
-	          $$('<div class="marker"></div>').css({
+	          // $$('<div class="marker"></div>').css({
+	          //     position: 'absolute',
+	          //     top: py+'%',
+	          //     'margin-left': '-8px',
+	          //     'margin-top': '-8px',
+	          //     left: px + '%',
+	          //     width: '16px',
+	          //     height: '16px',
+	          //     background: '#FF00FFCC'
+	          // })              
+
+	          $$('<img id="eyes_img" width="30px" src="assets/eyes_' + eyes_state + '.png"></img>').css({
 	              position: 'absolute',
 	              top: py+'%',
 	              'margin-left': '-8px',
@@ -48,8 +62,10 @@ $var title: DFAgent
 	              left: px + '%',
 	              width: '16px',
 	              height: '16px',
-	              background: '#FF00FFCC'
+	              background: '#00000000'
 	          })              
+
+
 	      );
 	    }
 	    catch(e) {
@@ -92,7 +108,7 @@ $$(document).ready(function () {
 						$$('#eyes_img').attr('src','assets/eyes_open.png');
 			    }
 			    $$('#location').html(state['location']);
-			    show_marker(state['location']);
+			    show_marker(state['location'], state['eyes_closed']);
 
 			    try {
 			     	$$('#iframe').attr('src',state['website']);
@@ -155,7 +171,7 @@ $$(document).ready(function () {
 				<ul>
 					<li>The robot is at place "<span id="location"></span>".</li>
 					<li>Eyes <span id="eyes"></span>
-								<img id="eyes_img" width="30px" src="assets/eyes_open.png"></img>
+								<!-- <img id="eyes_img" width="30px" src="assets/eyes_open.png"></img> -->
 					</li>
 				</ul>
 			</div>
