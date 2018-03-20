@@ -70,6 +70,7 @@ class SimulationDispatcher(FulfilmentDispatcher):
     '''
     def on_goto(self, d):
         node = d['parameters']['destination']
+        self.simulation.set(self.robot, 'last_action', 'goto("%s")' % node)
         logging.debug('called goto %s' % node)
         self.simulation.set(self.robot, 'location', node)
         self.context = self.simulation.state[self.robot]
@@ -80,6 +81,7 @@ class SimulationDispatcher(FulfilmentDispatcher):
     '''
     def on_about(self, d):
         node = d['parameters']['destination']
+        self.simulation.set(self.robot, 'last_action', 'about("%s")' % node)
         logging.debug('called about for node %s' % node)
         self.context = self.simulation.state[self.robot]
         if node in TOPO_NODES:
@@ -93,6 +95,8 @@ class SimulationDispatcher(FulfilmentDispatcher):
     '''
     def on_speak(self, d):
         utterance = d['parameters']['utterance']
+        self.simulation.set(self.robot, 'last_action',
+                            'speak("%s")' % utterance)
         logging.debug('called speak %s' % utterance)
         self.simulation.append(self.robot, 'utterances', utterance)
         self.context = self.simulation.state[self.robot]
@@ -103,6 +107,8 @@ class SimulationDispatcher(FulfilmentDispatcher):
     '''
     def on_wikipedia(self, d):
         query = d['parameters']['query']
+        self.simulation.set(self.robot, 'last_action',
+                            'wikipedia("%s")' % query)
         logging.debug('called wikipedia %s' % query)
         return Wikipedia().query(query)
 
@@ -111,6 +117,8 @@ class SimulationDispatcher(FulfilmentDispatcher):
     '''
     def on_close_eyes(self, d):
         logging.debug('called close_eyes')
+        self.simulation.set(self.robot, 'last_action',
+                            'close_eyes()')
         self.simulation.set(self.robot, 'eyes_closed', True)
         self.context = self.simulation.state[self.robot]
         return "I closed my eyes"
@@ -120,6 +128,8 @@ class SimulationDispatcher(FulfilmentDispatcher):
     '''
     def on_open_eyes(self, d):
         logging.debug('called open_eyes')
+        self.simulation.set(self.robot, 'last_action',
+                            'close_eyes()')
         self.simulation.set(self.robot, 'eyes_closed', False)
         self.context = self.simulation.state[self.robot]
         return "I opened my eyes"
