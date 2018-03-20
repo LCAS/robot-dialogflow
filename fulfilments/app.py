@@ -129,6 +129,7 @@ class index:
             query="who are you?",
             input="text",
             event="",
+            action_params="",
             parameters="{}")
         agent = index.agents[robot]
         # use robot identifier also as API key
@@ -136,6 +137,11 @@ class index:
             response = agent.query(
                 wi.query, session=session, robot=robot, apikey=robot
                 )
+        elif wi.input == 'action':
+            sd = SimulationDispatcher()
+            sd.robot = robot
+            sd.dispatch(loads(wi.action_params))
+            response = ''
         elif wi.input == 'event':
             logging.info(wi.parameters)
             response = agent.send_event(

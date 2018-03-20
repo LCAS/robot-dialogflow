@@ -151,10 +151,24 @@ class SimulationDispatcher(FulfilmentDispatcher):
     '''
     eye's action
     '''
+    def on_toggle_eyes(self, d):
+        logging.debug('called toggle_eyes')
+        self.simulation.set(self.robot, 'last_action',
+                            'toggle_eyes()')
+        self.simulation.set(
+            self.robot, 'eyes_closed',
+            not self.simulation.get(self.robot, 'eyes_closed')
+            )
+        self.context = self.simulation.state[self.robot]
+        return "I closed my eyes"
+
+    '''
+    eye's action
+    '''
     def on_open_eyes(self, d):
         logging.debug('called open_eyes')
         self.simulation.set(self.robot, 'last_action',
-                            'close_eyes()')
+                            'open_eyes()')
         self.simulation.set(self.robot, 'eyes_closed', False)
         self.context = self.simulation.state[self.robot]
         return "I opened my eyes"

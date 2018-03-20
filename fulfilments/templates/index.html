@@ -33,6 +33,36 @@ $var title: DFAgent
 
 	}
 
+	function go_to(n) {
+		$$.post("#" , {
+			input: 'action',
+			'action_params': JSON.stringify({
+				'result': {
+					'action': 'goto',
+					'parameters': {
+						'destination': n
+					}
+				}
+			})
+		});
+
+	}
+
+	function toggle_eyes() {
+		$$.post("#" , {
+			input: 'action',
+			'action_params': JSON.stringify({
+				'result': {
+					'action': 'toggle_eyes',
+					'parameters': {
+					}
+				}
+			})
+		});
+
+	}
+
+
 	function show_marker(node_name, eyes_closed) {
     	var nodes=$:nodes;
   		$$(".marker").remove();
@@ -54,7 +84,7 @@ $var title: DFAgent
 	          //     background: '#FF00FFCC'
 	          // })              
 
-	          $$('<img class="marker" id="eyes_img" width="30px" src="assets/eyes_' + eyes_state + '.png"></img>').css({
+	          $$('<img class="marker" onclick="toggle_eyes();" id="eyes_img" width="30px" src="assets/eyes_' + eyes_state + '.png"></img>').css({
 	              position: 'absolute',
 	              top: py+'%',
 	              'margin-left': '-16px',
@@ -156,7 +186,7 @@ $$(document).ready(function () {
 					<img id="map" style="width: 100%;" class="img-responsive" src="https://www.thecollectionmuseum.com/assets/images/templates/collection-interactive-map.jpg"/>
 					$for n in nodes:
 							$if n not in ['_max', '*unknown*']: 
-									<div class="fixed.marker" style="
+									<div onclick="go_to('$n');" class="fixed.marker" style="
 						              position: absolute;
 						              top: $(nodes[n]['y']*100 / nodes['_max']['y'])%;
 						              margin-left: -8px;
