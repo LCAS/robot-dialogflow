@@ -34,6 +34,8 @@ $var title: DFAgent
 	}
 
 	function go_to(n) {
+  	var nodes=$:nodes;
+
 		$$.post("#" , {
 			input: 'action',
 			'action_params': JSON.stringify({
@@ -45,6 +47,9 @@ $var title: DFAgent
 				}
 			})
 		});
+		console.log(nodes[n][description])
+
+		$$('#description').html(n + ": " + nodes[n]['description']);
 
 	}
 
@@ -197,6 +202,7 @@ $$(document).ready(function () {
 						              font-size: smaller;
 						              background: #00AA0088;
 						              color: #FFFFFF">$n</div>
+				<p><i><span id="description">click on a place to read about it.</span></i></p>
 				</div>
 				<ul>
 					<li>The robot is at place "<span id="location"></span>".</li>
