@@ -94,14 +94,14 @@ class SimulationDispatcher(FulfilmentDispatcher):
     speak action, expects argument "utterance" referring to an
     text that should be verbalised via Mary
     '''
-    def on_speak(self, d):
-        utterance = d['parameters']['utterance']
-        self.simulation.set(self.robot, 'last_action',
-                            'speak("%s")' % utterance)
-        logging.debug('called speak %s' % utterance)
-        self.simulation.append(self.robot, 'utterances', utterance)
-        self.context = self.simulation.state[self.robot]
-        return "I just said %s to the users." % utterance
+    # def on_speak(self, d):
+    #     utterance = d['parameters']['utterance']
+    #     self.simulation.set(self.robot, 'last_action',
+    #                         'speak("%s")' % utterance)
+    #     logging.debug('called speak %s' % utterance)
+    #     self.simulation.append(self.robot, 'utterances', utterance)
+    #     self.context = self.simulation.state[self.robot]
+    #     return "I just said %s to the users." % utterance
 
     '''
     website action

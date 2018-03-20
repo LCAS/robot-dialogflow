@@ -7,9 +7,9 @@ TOPO_NODES = {
           },
 
         'entrance': {
-          'x': 20, 'y': 20,
+          'x': 350, 'y': 355,
           'description': (
-            'This is the unknown place.'
+            'This is the entrance to the gallery.'
             )
           },
 
