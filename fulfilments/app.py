@@ -8,7 +8,6 @@ import signal
 from time import time
 from collections import defaultdict
 from uuid import uuid4
-from topomap import TOPO_NODES
 
 abspath = path.dirname(__file__)
 print abspath
@@ -20,6 +19,7 @@ if len(abspath) > 0:
 from simulation import SimulationDispatcher, SimulationSingleton
 
 from agent import Agent
+from topomap import TOPO_NODES
 
 logging.basicConfig(level=logging.DEBUG)
 
