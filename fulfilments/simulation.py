@@ -72,10 +72,13 @@ class SimulationDispatcher(FulfilmentDispatcher):
     def on_goto(self, d):
         node = d['parameters']['destination']
         self.simulation.set(self.robot, 'last_action', 'goto("%s")' % node)
-        logging.debug('called goto %s' % node)
-        self.simulation.set(self.robot, 'location', node)
-        self.context = self.simulation.state[self.robot]
-        return "I'm going to %s" % node
+        if node in TOPO_NODES:
+            logging.debug('called goto %s' % node)
+            self.simulation.set(self.robot, 'location', node)
+            self.context = self.simulation.state[self.robot]
+            return "I'm going to %s" % node
+        else:
+            return "I don't know where %s is." % node
 
     '''
     about a specific node in the map
@@ -98,6 +101,7 @@ class SimulationDispatcher(FulfilmentDispatcher):
         logging.debug('called whereami for node')
         node = self.simulation.state[self.robot]['location']
         return "I'm at a place called %s" % node
+
     '''
     speak action, expects argument "utterance" referring to an
     text that should be verbalised via Mary
