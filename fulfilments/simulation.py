@@ -91,6 +91,15 @@ class SimulationDispatcher(FulfilmentDispatcher):
             return "I don't know anything about %s" % node
 
     '''
+    about a specific node in the map
+    '''
+    def on_whereami(self, d):
+        self.simulation.set(self.robot, 'last_action', 'whereami()')
+        logging.debug('called whereami for node')
+        node = self.simulation.state[self.robot]['location']
+        return "I'm at a place called %s" % node
+
+    '''
     speak action, expects argument "utterance" referring to an
     text that should be verbalised via Mary
     '''
