@@ -29,6 +29,7 @@ class SimulationSingleton:
         self.state = defaultdict(lambda: {
             'location': '*unknown*',
             'utterances': [],
+            'website': 'https://lcas.lincoln.ac.uk/wp/',
             'eyes_closed': False,
             'track_people': False
             })
@@ -101,6 +102,18 @@ class SimulationDispatcher(FulfilmentDispatcher):
         self.simulation.append(self.robot, 'utterances', utterance)
         self.context = self.simulation.state[self.robot]
         return "I just said %s to the users." % utterance
+
+    '''
+    website action
+    '''
+    def on_website(self, d):
+        url = d['parameters']['url']
+        self.simulation.set(self.robot, 'last_action',
+                            'website("%s")' % url)
+        logging.debug('called website %s' % url)
+        self.simulation.set(self.robot, 'website', url)
+        self.context = self.simulation.state[self.robot]
+        return "I show some information on my screen."
 
     '''
     wikipedia action
