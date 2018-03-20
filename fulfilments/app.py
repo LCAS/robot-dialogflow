@@ -8,7 +8,7 @@ import signal
 from time import time
 from collections import defaultdict
 from uuid import uuid4
-
+from topomap import TOPO_NODES
 
 abspath = path.dirname(__file__)
 print abspath
@@ -106,7 +106,7 @@ class index:
 
         methods = sorted(SimulationDispatcher.available_methods())
 
-        return index.render.index(robot, methods)
+        return index.render.index(robot, TOPO_NODES, methods)
 
     def POST(self, robot):
         session = web.cookies(df_session=uuid4()).df_session

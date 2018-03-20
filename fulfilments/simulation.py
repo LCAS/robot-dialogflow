@@ -3,6 +3,7 @@ import logging
 from fulfilment import FulfilmentDispatcher
 from utils import Wikipedia
 from threading import Condition
+from topomap import TOPO_NODES
 
 
 class SimulationSingleton:
@@ -73,6 +74,18 @@ class SimulationDispatcher(FulfilmentDispatcher):
         self.simulation.set(self.robot, 'location', node)
         self.context = self.simulation.state[self.robot]
         return "I'm going to %s" % node
+
+    '''
+    about a specific node in the map
+    '''
+    def on_about(self, d):
+        node = d['parameters']['destination']
+        logging.debug('called about for node %s' % node)
+        self.context = self.simulation.state[self.robot]
+        if node in TOPO_NODES:
+            return "%s" % TOPO_NODES[node]['description']
+        else:
+            return "I don't know anything about %s" % node
 
     '''
     speak action, expects argument "utterance" referring to an

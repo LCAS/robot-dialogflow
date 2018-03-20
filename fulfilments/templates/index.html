@@ -1,4 +1,4 @@
-$def with (robot, available_methods)
+$def with (robot, nodes, available_methods)
 $var title: DFAgent
 
 
@@ -28,9 +28,34 @@ $var title: DFAgent
 		},
 		function(data) {
 			$$('#df_response').val(data['fulfillment']['speech']);
-			console.log("submit returned with data " + JSON.stringify(data));
 			$$('#df_input').val('')
 		});
+
+	}
+
+	function show_marker(node_name) {
+    	var nodes=$:nodes;
+  		$$(".marker").remove();
+  		try {
+	  		var px = nodes[node_name]['x'] * 100 / nodes['_max']['x'];
+	  		var py = nodes[node_name]['y'] * 100 / nodes['_max']['y'];
+	      $$("#map_parent").append(            
+	          $$('<div class="marker"></div>').css({
+	              position: 'absolute',
+	              top: px+'%',
+	              'margin-left': '-8px',
+	              'margin-top': '-8px',
+	              left: py + '%',
+	              width: '16px',
+	              height: '16px',
+	              background: '#FF00FFCC'
+	          })              
+	      );
+	    }
+	    catch(e) {
+	    	console.log("couldn't find position for marker " + node_name + "\n" + e);
+	    }
+
 
 	}
 
@@ -42,7 +67,6 @@ $var title: DFAgent
 		},
 		function(data) {
 			$$('#df_response').val(data['fulfillment']['speech']);
-			console.log("submit returned with data " + JSON.stringify(data));
 		});
 
 	}
@@ -55,10 +79,14 @@ $$(document).ready(function () {
 
 			var source = new EventSource("api/$robot");
 			source.onmessage = function(event) {
-			    console.log(event.data);
 			    var state = JSON.parse(event.data)['state'];
 			    $$('#sim_state').val(JSON.stringify(state, null, 2));
-					JSON.parse(event.data);
+			    if (state['eyes_closed'])
+			    	$$('#eyes').html('closed');
+			    else
+			    	$$('#eyes').html('open');
+			    $$('#location').html(state['location']);
+			    show_marker(state['location']);
 			};
 });
 
@@ -68,7 +96,7 @@ $$(document).ready(function () {
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-md-12">
-			<div class="jumbotron">
+			<div class="panel">
 				<h2>
 					DialogFlow Robot: $robot
 				</h2>
@@ -82,21 +110,67 @@ $$(document).ready(function () {
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-md-4">
+		<div class="col-md-8">
 			<h3>
 				Simulation State
 			</h3>
-			<img class="img-responsive" src="https://www.thecollectionmuseum.com/assets/images/templates/collection-interactive-map.jpg"/>
-			<textarea name="sim_state" class="form-control" rows="10" disabled id="sim_state"></textarea>
-			<h4>Available methods on fulfilment server:</h4>
+			<div class="panel">
+				<div id="map_parent" style="
+									position: relative;
+									top: 0px; left: 0px">
+					<img id="map" class="img-responsive" src="https://www.thecollectionmuseum.com/assets/images/templates/collection-interactive-map.jpg"/>
+				</div>
+				<ul>
+					<li>The robot is at place "<span id="location"></span>".</li>
+					<li>Eyes <span id="eyes"></span></li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<h3>
+				Dialogue
+			</h3>
+			<form role="form">
+				<div class="form-group">
+
+					<label for="df_input">
+						Speak to the robot
+					</label>
+					<input type="text" class="form-control" id="df_input" 
+						onkeydown="if (event.keyCode == 13) { submit_to_df(); return false; }"
+					/>
+				</div>
+				<button type="button" class="btn btn-primary"
+					onclick="submit_to_df();">
+					Submit
+				</button>
+				<div class="form-group">
+					 
+					<label for="df_response">
+						Robot's Response
+					</label>
+					<textarea class="form-control" rows=5 id="df_response" disabled>
+					</textarea>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-4">
+			<h3>Available methods on fulfilment server:</h3>
 			<p>
 				<ul class="list-group">
 				$for m in available_methods:
 						<li class="list-group-item">$m</li>
 				</ul>
 		  </p>
-
-		</div>
+		</div>	
+		<div class="col-md-4">
+			<h3>Detailed Simulation State</h3>
+			<p>
+			<textarea name="sim_state" class="form-control" rows="10" disabled id="sim_state"></textarea>
+		  </p>
+		</div>	
 		<div class="col-md-4">
 			<h3>
 				Events
@@ -140,33 +214,5 @@ $$(document).ready(function () {
 				</button>
 			</div>
 		</div>
-		<div class="col-md-4">
-			<h3>
-				Dialogue
-			</h3>
-			<form role="form">
-				<div class="form-group">
-
-					<label for="df_input">
-						Speak to the robot
-					</label>
-					<input type="text" class="form-control" id="df_input" 
-						onkeydown="if (event.keyCode == 13) { submit_to_df(); return false; }"
-					/>
-				</div>
-				<button type="button" class="btn btn-primary"
-					onclick="submit_to_df();">
-					Submit
-				</button>
-				<div class="form-group">
-					 
-					<label for="df_response">
-						Robot's Response
-					</label>
-					<textarea class="form-control" rows=5 id="df_response" disabled>
-					</textarea>
-				</div>
-			</form>
-		</div>
-	</div>
+	</div>	
 </div>
