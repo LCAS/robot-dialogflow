@@ -98,7 +98,6 @@ class SimulationDispatcher(FulfilmentDispatcher):
         logging.debug('called whereami for node')
         node = self.simulation.state[self.robot]['location']
         return "I'm at a place called %s" % node
-
     '''
     speak action, expects argument "utterance" referring to an
     text that should be verbalised via Mary

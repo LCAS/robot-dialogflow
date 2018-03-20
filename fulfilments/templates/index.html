@@ -83,10 +83,14 @@ $$(document).ready(function () {
 			source.onmessage = function(event) {
 			    var state = JSON.parse(event.data)['state'];
 			    $$('#sim_state').val(JSON.stringify(state, null, 2));
-			    if (state['eyes_closed'])
+			    if (state['eyes_closed']) {
 			    	$$('#eyes').html('closed');
-			    else
+			     	$$('#eyes_img').attr('src','assets/eyes_closed.png');
+			    }
+			    else {
 			    	$$('#eyes').html('open');
+						$$('#eyes_img').attr('src','assets/eyes_open.png');
+			    }
 			    $$('#location').html(state['location']);
 			    show_marker(state['location']);
 
@@ -96,6 +100,8 @@ $$(document).ready(function () {
 		      catch (e) {
 		      	console.log('no state website' + e);
 		      }
+
+
 
 			};
 });
@@ -148,7 +154,9 @@ $$(document).ready(function () {
 				</div>
 				<ul>
 					<li>The robot is at place "<span id="location"></span>".</li>
-					<li>Eyes <span id="eyes"></span></li>
+					<li>Eyes <span id="eyes"></span>
+								<img id="eyes_img" width="30px" src="assets/eyes_open.png"></img>
+					</li>
 				</ul>
 			</div>
 			<div class="panel">

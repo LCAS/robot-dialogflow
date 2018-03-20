@@ -8,7 +8,7 @@ import signal
 from time import time
 from collections import defaultdict
 from uuid import uuid4
-
+from mimetypes import guess_type
 abspath = path.dirname(__file__)
 print abspath
 
@@ -27,9 +27,23 @@ logging.basicConfig(level=logging.DEBUG)
 urls = (
     '/(.+)/webhook', 'webhook',
     '/api/(.+)', 'api',
+    '/assets/(.+)', 'assets',
     '/(.+)', 'index',
     '/', 'redirect'
 )
+
+
+class assets:
+    def GET(self, file):
+        try:
+            f = open(abspath + '/assets/' + file, 'r')
+            (t, encoding) = guess_type(file)
+            print t
+            web.header("Content-Type", t)
+            return f.read()
+        except Exception as e:
+            print e, file
+            return web.notfound()
 
 
 class redirect:
