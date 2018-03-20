@@ -35,7 +35,7 @@ $var title: DFAgent
 
 	function show_marker(node_name, eyes_closed) {
     	var nodes=$:nodes;
-  		$$("eyes_img").remove();
+  		$$(".marker").remove();
   		try {
   			var eyes_state = "open";
   			if (eyes_closed)
@@ -54,7 +54,7 @@ $var title: DFAgent
 	          //     background: '#FF00FFCC'
 	          // })              
 
-	          $$('<img id="eyes_img" width="30px" src="assets/eyes_' + eyes_state + '.png"></img>').css({
+	          $$('<img class="marker" id="eyes_img" width="30px" src="assets/eyes_' + eyes_state + '.png"></img>').css({
 	              position: 'absolute',
 	              top: py+'%',
 	              'margin-left': '-16px',
