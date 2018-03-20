@@ -28,7 +28,7 @@ TOPO_NODES = {
           },
 
         'boat': {
-          'x': 100, 'y': 50,
+          'x': 220, 'y': 112,
           'description': (
             "An ancient boat, made from a single oak tree trunk."
             )
