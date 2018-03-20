@@ -59,6 +59,8 @@ $var title: DFAgent
 
 	}
 
+
+
 	function send_event(ev, params) {
 		$$.post("#" , {
 			input: 'event',
@@ -119,6 +121,19 @@ $$(document).ready(function () {
 									position: relative;
 									top: 0px; left: 0px">
 					<img id="map" class="img-responsive" src="https://www.thecollectionmuseum.com/assets/images/templates/collection-interactive-map.jpg"/>
+					$for n in nodes:
+							$if n not in ['_max', '*unknown*']: 
+									<div class="fixed.marker" style="
+						              position: absolute;
+						              top: $(nodes[n]['y']*100 / nodes['_max']['y'])%;
+						              margin-left: -8px;
+						              margin-top: -8px;
+						              left: $(nodes[n]['x']*100 / nodes['_max']['x'])%;
+						              width: 16px;
+						              height: 16px;
+						              font-size: smaller;
+						              background: #00FF00CC;
+						              color: #FFFFFF">$n</div>
 				</div>
 				<ul>
 					<li>The robot is at place "<span id="location"></span>".</li>
