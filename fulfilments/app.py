@@ -118,8 +118,7 @@ class index:
         session = web.cookies(df_session=uuid4()).df_session
         web.setcookie('df_session', session, 3600)
 
-        methods = sorted(SimulationDispatcher.available_methods())
-
+        methods = SimulationDispatcher.available_methods()
         return index.render.index(robot, TOPO_NODES, methods)
 
     def POST(self, robot):

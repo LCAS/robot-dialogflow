@@ -6,9 +6,6 @@ from pprint import pformat
 
 class FulfilmentDispatcher:
 
-    def available_methods(self):
-        return [a for a in dir(self) if not a.startswith('on_')]
-
     def can_dispatch(self, method):
         try:
             getattr(self, 'on_%s' % method)

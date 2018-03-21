@@ -58,18 +58,33 @@ class SimulationDispatcher(FulfilmentDispatcher):
 
     @staticmethod
     def available_methods():
-        return [a[3:] for a in dir(SimulationDispatcher)
-                if a.startswith('on_')]
+        methods = [
+            a[3:] for a in dir(SimulationDispatcher)
+            if a.startswith('on_')
+            ]
+        result = {}
+        for m in methods:
+            result[m] = SimulationDispatcher.get_doc(m)
+        return result
+
+    @staticmethod
+    def get_doc(m):
+        method = getattr(SimulationDispatcher, 'on_%s' % m)
+        return method.__doc__
 
     def __init__(self):
         self.simulation = SimulationSingleton.getInstance()
         self.context = {}
 
-    '''
-    goto action, expects argument "destination" referring to an
-    existing topological node name in the robot's map
-    '''
     def on_goto(self, d):
+        '''
+        Moves the robot to a specified node in the robot's map.<br>
+        Requires one parameter "<tt>destination</tt>"" referring to an
+        existing topological node name in the robot's map.
+        The robot will reply with <i>'I'm going to <tt>destination</tt>'</i>
+        if it can go there or with '<i>I don't know where
+        <tt>destination</tt> is'</i> if it cannot find it in its map.
+        '''
         node = d['parameters']['destination']
         self.simulation.set(self.robot, 'last_action', 'goto("%s")' % node)
         if node in TOPO_NODES:
@@ -80,10 +95,12 @@ class SimulationDispatcher(FulfilmentDispatcher):
         else:
             return "I don't know where %s is." % node
 
-    '''
-    about a specific node in the map
-    '''
     def on_about(self, d):
+        '''
+        Returns the description for a specific node in the robot's map.<br>
+        Requires one parameter "<tt>destination</tt>" referring to an
+        existing topological node name in the robot's map.
+        '''
         node = d['parameters']['destination']
         self.simulation.set(self.robot, 'last_action', 'about("%s")' % node)
         logging.debug('called about for node %s' % node)
@@ -93,10 +110,12 @@ class SimulationDispatcher(FulfilmentDispatcher):
         else:
             return "I don't know anything about %s" % node
 
-    '''
-    about a specific node in the map
-    '''
     def on_whereami(self, d):
+        '''
+        Returns the current position of the robot as an utterance like
+        <i>"I'm at a place called 'boat'"</i>.<br>
+        It doesn't require any arguments.
+        '''
         self.simulation.set(self.robot, 'last_action', 'whereami()')
         logging.debug('called whereami for node')
         node = self.simulation.state[self.robot]['location']
@@ -115,10 +134,14 @@ class SimulationDispatcher(FulfilmentDispatcher):
     #     self.context = self.simulation.state[self.robot]
     #     return "I just said %s to the users." % utterance
 
-    '''
-    website action
-    '''
     def on_website(self, d):
+        '''
+        Displays a specified website on the robot's screen.<br>
+        Requires one parameter "<tt>url</tt>" referring to the website,
+        e.g. <tt>https://lcas.lincoln.ac.uk/wp/</tt><br>
+        <u>Note:</u> Some websites don't allow to be displayed within another
+        website, so it can result in the page not being shown.
+        '''
         url = d['parameters']['url']
         self.simulation.set(self.robot, 'last_action',
                             'website("%s")' % url)
@@ -127,20 +150,25 @@ class SimulationDispatcher(FulfilmentDispatcher):
         self.context = self.simulation.state[self.robot]
         return "I show some information on my screen."
 
-    '''
-    wikipedia action
-    '''
     def on_wikipedia(self, d):
+        '''
+        Search for a specific query on wikipedia.<br>
+        Requires one parameter "<tt>query</tt>" referring to
+        the phrase searched for.<br>
+        This action returns the short description of the best matched
+        for the given query. Depending on the query, it is possible that
+        an answer is not found.
+        '''
         query = d['parameters']['query']
         self.simulation.set(self.robot, 'last_action',
                             'wikipedia("%s")' % query)
         logging.debug('called wikipedia %s' % query)
         return Wikipedia().query(query)
 
-    '''
-    eye's action
-    '''
     def on_close_eyes(self, d):
+        '''
+        Closes the robot's eyes. It does not require any parameters.
+        '''
         logging.debug('called close_eyes')
         self.simulation.set(self.robot, 'last_action',
                             'close_eyes()')
@@ -148,10 +176,11 @@ class SimulationDispatcher(FulfilmentDispatcher):
         self.context = self.simulation.state[self.robot]
         return "I closed my eyes"
 
-    '''
-    eye's action
-    '''
     def on_toggle_eyes(self, d):
+        '''
+        Closes the robot's eyes if they were open and opens them
+        if they were closed. It does not require any parameters.
+        '''
         logging.debug('called toggle_eyes')
         self.simulation.set(self.robot, 'last_action',
                             'toggle_eyes()')
@@ -162,10 +191,10 @@ class SimulationDispatcher(FulfilmentDispatcher):
         self.context = self.simulation.state[self.robot]
         return "I closed my eyes"
 
-    '''
-    eye's action
-    '''
     def on_open_eyes(self, d):
+        '''
+        Opens the robot's eyes. It does not require any parameters.
+        '''
         logging.debug('called open_eyes')
         self.simulation.set(self.robot, 'last_action',
                             'open_eyes()')

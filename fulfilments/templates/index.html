@@ -132,6 +132,7 @@ $$(document).ready(function () {
 
 			var source = new EventSource("api/$robot");
 			source.onmessage = function(event) {
+        	var nodes=$:nodes;
 			    var state = JSON.parse(event.data)['state'];
 			    $$('#sim_state').val(JSON.stringify(state, null, 2));
 			    if (state['eyes_closed']) {
@@ -142,7 +143,10 @@ $$(document).ready(function () {
 			    	$$('#eyes').html('open');
 						$$('#eyes_img').attr('src','assets/eyes_open.png');
 			    }
-			    $$('#location').html(state['location']);
+			    var n = state['location'];
+			    $$('#location').html(n);
+	    		$$('#description').html(n + ": " + nodes[n]['description']);
+
 			    show_marker(state['location'], state['eyes_closed']);
 
 			    try {
@@ -188,7 +192,7 @@ $$(document).ready(function () {
 				<div id="map_parent" style="
 									position: relative;
 									top: 0px; left: 0px">
-					<img id="map" style="width: 100%;" class="img-responsive" src="https://www.thecollectionmuseum.com/assets/images/templates/collection-interactive-map.jpg"/>
+					<img id="map" style="width: 100%;" class="img-responsive" src="assets/collection-interactive-map.jpg"/>
 					$for n in nodes:
 							$if n not in ['_max', '*unknown*']: 
 									<div onclick="go_to('$n');" class="fixed.marker" style="
@@ -247,25 +251,7 @@ $$(document).ready(function () {
 					</textarea>
 				</div>
 			</form>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-4">
-			<h3>Available methods on fulfilment server:</h3>
-			<p>
-				<ul class="list-group">
-				$for m in available_methods:
-						<li class="list-group-item">$m</li>
-				</ul>
-		  </p>
-		</div>	
-		<div class="col-md-4">
-			<h3>Detailed Simulation State</h3>
-			<p>
-			<textarea name="sim_state" class="form-control" rows="10" disabled id="sim_state"></textarea>
-		  </p>
-		</div>	
-		<div class="col-md-4">
+
 			<h3>
 				Events
 			</h3>
@@ -274,28 +260,28 @@ $$(document).ready(function () {
 					onclick="send_event('person_detected', {age: 20});">
 					Person detected
 				</button>
-				<button type="button" class="btn btn-default"
+<!-- 				<button type="button" class="btn btn-default"
 					onclick="send_event('place_reached', {place: 'plesiosaurus'});">
 					Place "Plesiosaurus" reached
-				</button>
+				</button> -->
 				<button type="button" class="btn btn-default"
 					onclick="send_event('request_help', {
 						instructions: 'Can you please help me by pushing me away from here a bit?'
 					});">
 					Navigation failure
 				</button>
-				<button type="button" class="btn btn-default"
+<!-- 				<button type="button" class="btn btn-default"
 					onclick="send_event('code_card_seen', {
 						command: 'tweet'
 					});">
 					Code card seen
-				</button>
-				<button type="button" class="btn btn-default"
+				</button> -->
+<!-- 				<button type="button" class="btn btn-default"
 					onclick="send_event('screen_touched', {
 						context: 'unknown'
 					});">
 					User touched screen
-				</button>
+				</button> -->
 				<button type="button" class="btn btn-default"
 					onclick="send_event('robot_pushed', {
 					});">
@@ -307,6 +293,32 @@ $$(document).ready(function () {
 					User pushed emergency stop
 				</button>
 			</div>
+
+
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-8">
+			<h3>Available actions on fulfilment server:</h3>
+			<p>
+				<ul class="list-group">
+					<table class="table">
+						<tr>
+							<th>action name</th><th>description</th>
+						</tr>
+					$for m in available_methods:
+						<tr>
+							<td><tt>$m</tt></td><td>$:available_methods[m]</td>
+						</tr>
+					</table>
+				</ul>
+		  </p>
+		</div>	
+		<div class="col-md-4">
+			<h3>Detailed Simulation State</h3>
+			<p>
+			<textarea name="sim_state" class="form-control" rows="10" disabled id="sim_state"></textarea>
+		  </p>
 		</div>
 	</div>	
 </div>
